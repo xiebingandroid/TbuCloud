@@ -13,53 +13,25 @@ import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.PushService;
 import com.avos.avoscloud.SaveCallback;
 
-/**
- * step 1 : 需要申请的权限列表 : 
- * 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.READ_LOGS" />
- * 
- * 并添加(渠道信息添加为测试)：
- * 
-	<meta-data android:name="Channel ID" android:value="TEST"/>
- * 
- * step2 : 依赖jar包
- * 
- * android-async-http-1.4.4-fix.jar
- * avoscloud-v2.4.1.2.jar
- * avospush-v2.4.1.2.jar
- * avosstatistics-2.4.1.2.jar
- * fastjson.jar
- * httpmime-4.2.4.jar
- * 
- * step3 : 在初始化的时候调用initCloud();
- * 
- * @author molo
- *
- */
 public class TbuCloud {
 	
 	private static boolean successInit = false;
-	/*
-	 * 001_ 1.1.0版本 - current
-	 * 002_ 1.1.1版本
-	 * 003_ 1.2.0版本
-	 * 004_ 1.2.1版本
-	 * 008_ 1.2.3版本
+	
+	/**
+	 * 游戏版本号，用来在自定义事件的时候在最前面标记
 	 */
 	private static String TAGID = "0";
 	
+	/**
+	 * 判断插件是否初始化成功
+	 * @return true，成功, false，失败
+	 */
 	public static boolean isSuccessInit() {
 		return successInit;
 	}
 
 	/**
-	 * 
+	 * 初始化插件。
 	 * @param context
 	 * @param callback
 	 * @param appId
@@ -94,7 +66,7 @@ public class TbuCloud {
 	}
 	
 	/**
-	 * 记录一次应用登陆
+	 * 在服务端记录1次应用登陆[非实时上传数据]
 	 * @param activity
 	 */
 	public static void markAppOpened(Activity activity) {
