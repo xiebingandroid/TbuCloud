@@ -1,15 +1,16 @@
 package com.tallbigup.android.cloud;
 
+import java.util.List;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
-
 import com.avos.avoscloud.AVAnalytics;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVInstallation;
 import com.avos.avoscloud.AVOSCloud;
 import com.avos.avoscloud.AVObject;
 import com.avos.avoscloud.AVQuery;
+import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.PushService;
 import com.avos.avoscloud.SaveCallback;
 
@@ -144,26 +145,34 @@ public class TbuCloud {
 	 * 获取支付开关
 	 * @param callback
 	 */
-	public static void getSwitchByOpenXyhPay(TbuCallback callback) {
-		if(TbuCloud.isSuccessInit()){
+	public static void getSwitchByOpenXyhPay(final TbuCallback callback) {
+		if(!TbuCloud.isSuccessInit()){
+			
 			if(callback != null) {
 				callback.result(false);
 			}
 		}
 		
-		AVObject switcher = new AVObject("Switch");
 		AVQuery<AVObject> query = new AVQuery<AVObject>("Switch");
-
-		try {
-			switcher = query.get("537ea486e4b0664ba6467917");
-			if(switcher.getInt("state") == 1) {
-				callback.result(true);
-			}else {
-				callback.result(false);
-			}
-		} catch (AVException e) {
-			e.printStackTrace();
-		}
+		query.whereEqualTo("type", 1);
+		query.findInBackground(new FindCallback<AVObject>() {
+		    public void done(List<AVObject> avObjects, AVException e) {
+		        if (e == null) {
+		        		if(avObjects!=null && !avObjects.isEmpty()) {
+		        			Log.i("MOLO_DEBUG", "state = " + avObjects.get(0).getInt("state"));
+		        			if(avObjects.get(0).getInt("state") == 1) {
+		        				callback.result(true);
+		        			}else {
+		        				callback.result(false);
+		        			}
+		        		}else {
+		        			callback.result(false);
+		        		}
+		        } else {
+		        		callback.result(false);
+		        }
+		    }
+		});
 		
 	}
 	
