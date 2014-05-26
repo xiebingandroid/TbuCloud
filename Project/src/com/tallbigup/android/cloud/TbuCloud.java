@@ -66,6 +66,7 @@ public class TbuCloud {
 	    }
 	}
 	
+	
 	/**
 	 * 在服务端记录1次应用登陆[非实时上传数据]
 	 * @param activity
@@ -74,38 +75,17 @@ public class TbuCloud {
 		AVAnalytics.trackAppOpened(activity.getIntent());
 	}
 	
-	/**
-	 * 第一次通过关卡记录一次。
-	 * @param context
-	 * @param levelId 当前第几关就传几
-	 */
-	public static void markLevelPassInfo(Context context, final int levelId, final String tag) {
-		AVAnalytics.onEvent(context, TAGID + "levelpass" + levelId, tag);
-	}
-	
-	
-	public static void markLevelQuitInfo(Context context, final int levelId, final String tag) {
-		AVAnalytics.onEvent(context, TAGID + "levelquit" + levelId, tag);
-	}
 	
 	/**
-	 * 进入一次关卡记录一次。
+	 * 
 	 * @param context
-	 * @param levelId 当前第几关就传几
+	 * @param title 自定义事件的名称，会自动在头上加上游戏的版本号
+	 * @param tag 可以通过不同的tag来标记分类
 	 */
-	public static void markLevelInInfo(Context context, int levelId, final String tag) {
-		AVAnalytics.onEvent(context, TAGID + "levelin" + levelId, tag);
+	public static void markPersonInfo(final Context context, final String title, final String tag) {
+		AVAnalytics.onEvent(context, TAGID + "_" + title, tag);
 	}
 	
-	/**
-	 * 进入关卡选择一个技能记录一次。
-	 * @param context
-	 * @param levelId 当前第几关就传几
-	 * @param 技能ID
-	 */
-	public static void markUseSkill(Context context, int levelId, int skillId, final String tag) {
-		AVAnalytics.onEvent(context, TAGID + "level_" + levelId + "_skill_" + skillId, tag);
-	}
 	
 	/**
 	 * 更新玩家信息
@@ -113,7 +93,10 @@ public class TbuCloud {
 	 * @param level
 	 * @param money
 	 */
-	public static void updatePlayerInfo(final String objectId, final String level, final int money,
+	public static void updatePlayerInfo(
+			final String objectId, 
+			final String level, 
+			final int money,
 			final int payMoney) {
 		if(objectId == null) {
 			return ;
@@ -141,57 +124,27 @@ public class TbuCloud {
 		}
 	}
 	
-	/**
-	 * 获取支付开关
-	 * @param callback
-	 */
-	public static void getSwitchByOpenXyhPay(final TbuCallback callback) {
-		if(!TbuCloud.isSuccessInit()){
-			
-			if(callback != null) {
-				callback.result(false);
-			}
-		}
-		
-		AVQuery<AVObject> query = new AVQuery<AVObject>("Switch");
-		query.whereEqualTo("type", 1);
-		query.findInBackground(new FindCallback<AVObject>() {
-		    public void done(List<AVObject> avObjects, AVException e) {
-		        if (e == null) {
-		        		if(avObjects!=null && !avObjects.isEmpty()) {
-		        			Log.i("MOLO_DEBUG", "state = " + avObjects.get(0).getInt("state"));
-		        			if(avObjects.get(0).getInt("state") == 1) {
-		        				callback.result(true);
-		        			}else {
-		        				callback.result(false);
-		        			}
-		        		}else {
-		        			callback.result(false);
-		        		}
-		        } else {
-		        		callback.result(false);
-		        }
-		    }
-		});
-		
-	}
 	
 	/**
-	 * 创建玩家
+	 * 
 	 * @param nickName
 	 * @param IMSI
 	 * @param gameVersionCode
+	 * @param level
+	 * @param money
 	 * @param enterId
+	 * @param payMoney
 	 * @param callback
 	 */
-	public static void createPlayer(final String nickName, final String IMSI, 
-			final String gameVersionCode, final String enterId, final CreatePlayerCallback callback) {
-		createPlayer(nickName, IMSI, gameVersionCode, "0", 0, enterId, 0, callback);
-	}
-	
-	public static void createPlayer(final String nickName, final String IMSI, 
-			final String gameVersionCode,  final String level, final int money, 
-			final String enterId, final int payMoney, final CreatePlayerCallback callback) {
+	public static void createPlayer(
+			final String nickName, 
+			final String IMSI, 
+			final String gameVersionCode,  
+			final String level, 
+			final int money, 
+			final String enterId, 
+			final int payMoney, 
+			final CreatePlayerCallback callback) {
 		if(TbuCloud.isSuccessInit()){
 			if(callback != null) {
 				callback.result(false, null);
@@ -221,23 +174,44 @@ public class TbuCloud {
 		        }
 		    }
 		});
-		
 	}
 	
+	
 	/**
-	 * 设置充值信息。
-	 * @param requestType : [request, success, fail]
-	 * @param money : 单位分
+	 * 
+	 * @param requestType
+	 * @param money
 	 * @param payType
 	 * @param userId
 	 * @param desc
 	 * @param payCount
+	 * @param enterId
+	 * @param orderId
+	 * @param errorCode
+	 * @param errorMessgae
+	 * @param gameVersion
+	 * @param payVersionId
+	 * @param levelId
+	 * @param imsi
+	 * @param carrier
+	 * @param payPluginName
+	 * @param userType
 	 * @param callback
 	 */
-	public static void setPayInfo(final String requestType, final int money, final String payType, 
-			final String userId, final String desc, final int payCount, final String enterId, 
-			final String orderId, final String errorCode, String errorMessgae,
-			final String gameVersion, final String payVersionId, final String levelId, 
+	public static void setPayInfo(
+			final String requestType, 
+			final int money, 
+			final String payType, 
+			final String userId, 
+			final String desc, 
+			final int payCount, 
+			final String enterId, 
+			final String orderId, 
+			final String errorCode, 
+			final String errorMessgae,
+			final String gameVersion, 
+			final String payVersionId, 
+			final String levelId, 
 			final String imsi,
 			final String carrier,
 			final String payPluginName,
@@ -276,5 +250,39 @@ public class TbuCloud {
 				}
 			}
 		});
+	}
+	
+	/**
+	 * 获取支付开关
+	 * 支付开关的数据需要在后台配置
+	 * type == 1 ： mm支付通道中允许打开新银河支付
+	 * @param callback
+	 */
+	public static void getSwitchState(final String type, final TbuCallback callback) {
+		if(!TbuCloud.isSuccessInit()){
+			if(callback != null) {
+				callback.result(false);
+			}
+		}
+		
+		AVQuery<AVObject> query = new AVQuery<AVObject>("Switch");
+		query.whereEqualTo(type, 1);
+		query.findInBackground(new FindCallback<AVObject>() {
+		    public void done(List<AVObject> avObjects, AVException e) {
+		        if (e == null) {
+		        		if(avObjects!=null && !avObjects.isEmpty()) {
+		        			if(avObjects.get(0).getInt("state") == 1) {
+		        				callback.result(true);
+		        			}else {
+		        				callback.result(false);
+		        			}
+		        		}else {
+		        			callback.result(false);
+		        		}
+		        } else {
+		        		callback.result(false);
+		        }
+		    }
+		});	
 	}
 }
