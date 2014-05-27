@@ -40,7 +40,7 @@ public class TbuCloud {
 	 * @param gameVersion
 	 * @param cls
 	 */
-	public static void initCloud(
+	public static void initCloud (
 			Context context, 
 			TbuCallback callback,
 			final String appId, 
