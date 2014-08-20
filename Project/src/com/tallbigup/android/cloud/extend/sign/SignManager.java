@@ -24,7 +24,7 @@ public class SignManager {
 	/**
 	 * 获得已经连续签到几天的信息（今天不算的连续签到信息）。
 	 */
-	public static int getCurrentSignDay(Context context) {
+	public static int getCurrentSignDays(Context context) {
 		if(SignUtil.getBetweenDay(
 				SignUtil.getDateByString(SignManager.getLastSignDay(context)), new Date()) <= 1) {
 		}else {
@@ -32,6 +32,14 @@ public class SignManager {
 			return 0;
 		}
 		return SignManager.getSignDays(context);
+	}
+	
+	/**
+	 * 将连续签到天数设置为0
+	 * @param context
+	 */
+	public static void cleanSignDays(Context context) {
+		SignManager.saveSignDays(context, 0);
 	}
 	
 	/**
@@ -72,7 +80,7 @@ public class SignManager {
 	public static void sign(Context context) {
 		if(!isSignToday(context)) {	// 如果今天没有签到过
 			SignManager.saveLastSignDay(context, SignUtil.getStringByDate(new Date()));
-			SignManager.saveSignDays(context, SignManager.getCurrentSignDay(context));
+			SignManager.saveSignDays(context, SignManager.getCurrentSignDays(context));
 			if(getNeedNotifyPlayer(context)) {
 				// TODO : 设置本地提醒任务
 			}
