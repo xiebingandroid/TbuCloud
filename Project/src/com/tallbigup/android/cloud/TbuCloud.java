@@ -78,12 +78,12 @@ public class TbuCloud {
 	 * @param cls
 	 */
 	public static void initCloud (
-			Context context, 
-			TbuCallback callback,
+			final Context context, 
+			final TbuCallback callback,
 			final String appId, 
 			final String appKey,
 			final String gameVersion,
-			Class <? extends Activity> cls) {
+			final Class <? extends Activity> cls) {
 		if(gameVersion != null && gameVersion.length() > 0) {
 			TAGID = gameVersion;
 		}
@@ -115,8 +115,15 @@ public class TbuCloud {
 	 * 在服务端记录1次应用登陆[非实时上传数据]
 	 * @param activity
 	 */
-	public static void markAppOpened(Activity activity) {
-		AVAnalytics.trackAppOpened(activity.getIntent());
+	public static void markAppOpened(final Activity activity) {
+		new AsyncTask<String, Integer, String>(){
+
+			@Override
+			protected String doInBackground(String... params) {
+				AVAnalytics.trackAppOpened(activity.getIntent());
+				return null;
+			}
+		}.execute("");	
 	}
 	
 	
@@ -127,7 +134,14 @@ public class TbuCloud {
 	 * @param tag 可以通过不同的tag来标记分类
 	 */
 	public static void markPersonInfo(final Context context, final String title, final String tag) {
-		AVAnalytics.onEvent(context, TAGID + "_" + title, tag);
+		new AsyncTask<String, Integer, String>(){
+
+			@Override
+			protected String doInBackground(String... params) {
+				AVAnalytics.onEvent(context, TAGID + "_" + title, tag);
+				return null;
+			}
+		}.execute("");	
 	}
 	
 	
@@ -143,75 +157,91 @@ public class TbuCloud {
 			final int money,
 			final int payMoney,
 			final int score) {
-		if(objectId == null) {
-			return ;
-		}
-		AVObject playerInfo = new AVObject("Player");
-		AVQuery<AVObject> query = new AVQuery<AVObject>("Player");
+		new AsyncTask<String, Integer, String>(){
 
-		try {
-			playerInfo = query.get(objectId);
-			playerInfo.put("level",level);
-			playerInfo.put("money",money);
-			playerInfo.put("payMoney",payMoney);
-			if(playerInfo.getInt("score") < score){
-				playerInfo.put("score",score);
+			@Override
+			protected String doInBackground(String... params) {
+
+				if(objectId == null) {
+					return null;
+				}
+				AVObject playerInfo = new AVObject("Player");
+				AVQuery<AVObject> query = new AVQuery<AVObject>("Player");
+
+				try {
+					playerInfo = query.get(objectId);
+					playerInfo.put("level",level);
+					playerInfo.put("money",money);
+					playerInfo.put("payMoney",payMoney);
+					if(playerInfo.getInt("score") < score){
+						playerInfo.put("score",score);
+					}
+					playerInfo.saveInBackground(new SaveCallback() {
+					   @Override
+					   public void done(AVException e) {
+					        if (e == null) {
+					            Log.i("POXIAOCLOUD", "Save successfully.");
+					        } else {
+					            Log.e("POXIAOCLOUD", "Save failed.");
+					        }
+					    }
+					});
+				} catch (AVException e) {
+					e.printStackTrace();
+				}
+				return null;
 			}
-			playerInfo.saveInBackground(new SaveCallback() {
-			   @Override
-			   public void done(AVException e) {
-			        if (e == null) {
-			            Log.i("POXIAOCLOUD", "Save successfully.");
-			        } else {
-			            Log.e("POXIAOCLOUD", "Save failed.");
-			        }
-			    }
-			});
-		} catch (AVException e) {
-			e.printStackTrace();
-		}
+		}.execute("");	
 	}
 	
 	public static void updatePlayerScore(final Context context,final String objectId,final int score,final UpdateCallback callback){
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD, Context.MODE_PRIVATE);
-		Editor editor = gameInfo.edit();	
-		editor.putInt("topScore", score);
-		editor.commit();
-		if(objectId == null || !isSuccessInit()) {
-			callback.result(false, "网络未连接");
-			return ;
-		}
-		
-		if(score <= 0){
-			return;
-		}
-				
-		AVObject playerInfo = new AVObject("Player");
-		AVQuery<AVObject> query = new AVQuery<AVObject>("Player");
+		new AsyncTask<String, Integer, String>(){
 
-		try {
-			playerInfo = query.get(objectId);
-			int topScore = playerInfo.getInt("score");
-			if(score <= topScore){
-				return;
+			@Override
+			protected String doInBackground(String... params) {
+
+				gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD, Context.MODE_PRIVATE);
+				Editor editor = gameInfo.edit();	
+				editor.putInt("topScore", score);
+				editor.commit();
+				if(objectId == null || !isSuccessInit()) {
+					callback.result(false, "网络未连接");
+					return null;
+				}
+				
+				if(score <= 0){
+					return null;
+				}
+					
+				AVObject playerInfo = new AVObject("Player");
+				AVQuery<AVObject> query = new AVQuery<AVObject>("Player");
+
+				try {
+					playerInfo = query.get(objectId);
+					int topScore = playerInfo.getInt("score");
+					if(score <= topScore){
+						return null;
+					}
+					playerInfo.put("score",score);
+					playerInfo.saveInBackground(new SaveCallback() {
+					   @Override
+					   public void done(AVException e) {
+					        if (e == null) {
+					        	callback.result(true, "更新得分成功");
+					            Log.i("POXIAOCLOUD", "Save successfully.");
+					        } else {
+					        	callback.result(true, "更新得分失败");
+					            Log.e("POXIAOCLOUD", "Save failed.");
+					        }
+					    }
+					});
+				} catch (AVException e) {
+					callback.result(false, "更新得分失败");
+					e.printStackTrace();
+				}
+				return null;
 			}
-			playerInfo.put("score",score);
-			playerInfo.saveInBackground(new SaveCallback() {
-			   @Override
-			   public void done(AVException e) {
-			        if (e == null) {
-			        	callback.result(true, "更新得分成功");
-			            Log.i("POXIAOCLOUD", "Save successfully.");
-			        } else {
-			        	callback.result(true, "更新得分失败");
-			            Log.e("POXIAOCLOUD", "Save failed.");
-			        }
-			    }
-			});
-		} catch (AVException e) {
-			callback.result(false, "更新得分失败");
-			e.printStackTrace();
-		}
+		}.execute("");	
 	}
 	
 	/**
@@ -220,36 +250,44 @@ public class TbuCloud {
 	 * @param nickName  玩家昵称
 	 */
 	public static void updatePlayerNickName(final Context context,final String objectId,final String nickName,final UpdateCallback callback){
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD, Context.MODE_PRIVATE);
-		if(objectId == null || !isSuccessInit()) {
-			callback.result(false, "网络未连接");
-			return ;
-		}
-		AVObject playerInfo = new AVObject("Player");
-		AVQuery<AVObject> query = new AVQuery<AVObject>("Player");
-		
-		try {
-			playerInfo = query.get(objectId);
-			playerInfo.put("nickName",nickName);
-			playerInfo.saveInBackground(new SaveCallback() {
-			   @Override
-			   public void done(AVException e) {
-			        if (e == null) {
-			    		Editor editor = gameInfo.edit();	
-			    		editor.putString("nickName", nickName);
-			    		editor.commit();
-			        	callback.result(true, "更新昵称成功");
-			            Log.i("POXIAOCLOUD", "Save successfully.");
-			        } else {
-			        	callback.result(true, "更新昵称失败");
-			            Log.e("POXIAOCLOUD", "Save failed.");
-			        }
-			    }
-			});
-		} catch (AVException e) {
-			callback.result(true, "更新昵称失败");
-			e.printStackTrace();
-		}
+		new AsyncTask<String, Integer, String>(){
+
+			@Override
+			protected String doInBackground(String... params) {
+
+				gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD, Context.MODE_PRIVATE);
+				if(objectId == null || !isSuccessInit()) {
+					callback.result(false, "网络未连接");
+					return null;
+				}
+				AVObject playerInfo = new AVObject("Player");
+				AVQuery<AVObject> query = new AVQuery<AVObject>("Player");
+				
+				try {
+					playerInfo = query.get(objectId);
+					playerInfo.put("nickName",nickName);
+					playerInfo.saveInBackground(new SaveCallback() {
+					   @Override
+					   public void done(AVException e) {
+					        if (e == null) {
+					    		Editor editor = gameInfo.edit();	
+					    		editor.putString("nickName", nickName);
+					    		editor.commit();
+					        	callback.result(true, "更新昵称成功");
+					            Log.i("POXIAOCLOUD", "Save successfully.");
+					        } else {
+					        	callback.result(true, "更新昵称失败");
+					            Log.e("POXIAOCLOUD", "Save failed.");
+					        }
+					    }
+					});
+				} catch (AVException e) {
+					callback.result(true, "更新昵称失败");
+					e.printStackTrace();
+				}
+				return null;
+			}
+		}.execute("");	
 	}
 	
 	/**
@@ -258,24 +296,32 @@ public class TbuCloud {
 	 * @param callback  
 	 */
 	public static void isNickNameUnique(final String nickName,final UpdateCallback callback){
-		if(!isSuccessInit()){
-			callback.result(false, "网络未连接");
-			return;
-		}
-		
-		AVQuery<AVObject> query = new AVQuery<AVObject>("Player");
-		
-		query.whereEqualTo("nickName", nickName);
-		try {
-			if(query.getFirst() == null){
-				callback.result(true, "该昵称可用");
-			}else{
-				callback.result(false, "该昵称不可用");
-			}			
-		} catch (AVException e) {
-			callback.result(false, "发生错误");
-			e.printStackTrace();
-		}
+		new AsyncTask<String, Integer, String>(){
+
+			@Override
+			protected String doInBackground(String... params) {
+
+				if(!isSuccessInit()){
+					callback.result(false, "网络未连接");
+					return null;
+				}
+				
+				AVQuery<AVObject> query = new AVQuery<AVObject>("Player");
+				
+				query.whereEqualTo("nickName", nickName);
+				try {
+					if(query.getFirst() == null){
+						callback.result(true, "该昵称可用");
+					}else{
+						callback.result(false, "该昵称不可用");
+					}			
+				} catch (AVException e) {
+					callback.result(false, "发生错误");
+					e.printStackTrace();
+				}
+				return null;
+			}
+		}.execute("");	
 	}
 	
 	
@@ -300,36 +346,44 @@ public class TbuCloud {
 			final int payMoney, 
 			final int score,
 			final CreatePlayerCallback callback) {
-		if(TbuCloud.isSuccessInit()){
-			if(callback != null) {
-				callback.result(false, null);
-			}
-		}
-		
-		final AVObject player = new AVObject("Player");
-		
-		player.put("nickName", nickName);
-		player.put("IMSI", IMSI);
-		player.put("money", money);
-		player.put("level",level);
-		player.put("enterId",enterId);
-		player.put("gameVersionCode", gameVersionCode);
-		player.put("payMoney",payMoney);
-		player.put("score", score);
+		new AsyncTask<String, Integer, String>(){
 
-		player.saveInBackground(new SaveCallback() {
-		    public void done(AVException e) {
-		        if (e == null) {
-		        		if(callback != null) {
-		        			callback.result(true, player.getObjectId());
-		        		}
-		        } else {
-		        		if(callback != null) {
-		        			callback.result(false, null);
-		        		}
-		        }
-		    }
-		});
+			@Override
+			protected String doInBackground(String... params) {
+
+				if(TbuCloud.isSuccessInit()){
+					if(callback != null) {
+						callback.result(false, null);
+					}
+				}
+				
+				final AVObject player = new AVObject("Player");
+				
+				player.put("nickName", nickName);
+				player.put("IMSI", IMSI);
+				player.put("money", money);
+				player.put("level",level);
+				player.put("enterId",enterId);
+				player.put("gameVersionCode", gameVersionCode);
+				player.put("payMoney",payMoney);
+				player.put("score", score);
+
+				player.saveInBackground(new SaveCallback() {
+				    public void done(AVException e) {
+				        if (e == null) {
+				        		if(callback != null) {
+				        			callback.result(true, player.getObjectId());
+				        		}
+				        } else {
+				        		if(callback != null) {
+				        			callback.result(false, null);
+				        		}
+				        }
+				    }
+				});
+				return null;
+			}
+		}.execute("");	
 	}
 	
 	
@@ -373,7 +427,6 @@ public class TbuCloud {
 			final String payPluginName,
 			final String userType,
 			final TbuCallback callback) { 
-
 		if(TbuCloud.isSuccessInit()){
 			callback.result(false);
 		}
@@ -530,7 +583,6 @@ public class TbuCloud {
 		        }
 		    }
 		});	
-	
 	}
 	
 		
@@ -539,8 +591,15 @@ public class TbuCloud {
 	 * @param activity  初始化avoscloud时传入的activity的onStart()方法中调用
 	 */
 	public static void markOpenPushInfo(final Activity activity){
-		Intent intent = activity.getIntent();
-        AVAnalytics.trackAppOpened(intent);
+		new AsyncTask<String, Integer, String>(){
+
+			@Override
+			protected String doInBackground(String... params) {
+				Intent intent = activity.getIntent();
+		        AVAnalytics.trackAppOpened(intent);
+				return null;
+			}
+		}.execute("");	
 	}
 	
 	public static final String ICON_URL = "icon_url";	
@@ -568,24 +627,24 @@ public class TbuCloud {
 		int size1 = gameInfo.getInt("recommend_1_count", 0);
 		int size2 = gameInfo.getInt("recommend_2_count", 0);
 		if((size1 > 0 || size2 >0 ) && (System.currentTimeMillis() - lastcache) < cacheLife * 60 * 60 * 1000){
-			String[] params = null;	
+			String[] params1 = null;	
 			String recommendStr = "";
 			if(size1 > 0){
 				for(int i=0;i<size1;i++){
 					recommendStr = gameInfo.getString("recommend_1_"+i, "");
 					if(!recommendStr.equals("")){
-						params = recommendStr.split("&");
+						params1 = recommendStr.split("&");
 					}	
-					paramList1.put(i, params);
+					paramList1.put(i, params1);
 				}
 				callback.result(true, paramList1);
 			}else if(size2 > 0){
 				for(int i=0;i<size2;i++){
 					recommendStr = gameInfo.getString("recommend_2_"+i, "");
 					if(!recommendStr.equals("")){
-						params = recommendStr.split("&");
+						params1 = recommendStr.split("&");
 					}	
-					paramList2.put(i, params);
+					paramList2.put(i, params1);
 				}
 				callback.result(true, paramList2);
 			}
@@ -654,167 +713,175 @@ public class TbuCloud {
 	 * @param callback
 	 */
 	public static void getRankInfo(final Context context,final String playerId,final int score, final RankInfoCallback callback){
-	    gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD, Context.MODE_PRIVATE);
-		Editor editor = gameInfo.edit();
-		
-		Map<Integer,Map<String,String>> map = new HashMap<Integer,Map<String,String>>();
-		Map<String,String> rankInfo = null;
-		int topRank = 1;
-		int topScore = 0;
-		int minScore = 0;
-		String nickName = gameInfo.getString("nickName", "unknown");
-		Long lastCacheTime = gameInfo.getLong("lastCacheTime", 0);
-		String rankInfoStr20 = gameInfo.getString("rankInfoStr20", "");
-		int[] scores = new int[20];
-		String[] nickNames = new String[20];
-		int[] ranks = new int[20];
-		int top20Rank = 0;
-		if(rankInfoStr20 != null && !rankInfoStr20.equals("") && (System.currentTimeMillis() - lastCacheTime) < cacheLife * 60 * 60 * 1000){
-			for(int i=1;i<21;i++){
-				String cacheRankInfo = gameInfo.getString("rankInfoStr" + i, "");
-				String[] caches = cacheRankInfo.split(",");
-				rankInfo = new HashMap<String,String>();
+		new AsyncTask<String, Integer, String>(){
 
-				rankInfo.put("rank", caches[0]);
-				rankInfo.put("nickName", caches[1]);
-				rankInfo.put("score", caches[2]);
+			@Override
+			protected String doInBackground(String... params) {
+
+			    gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD, Context.MODE_PRIVATE);
+				Editor editor = gameInfo.edit();
 				
-				top20Rank = Integer.valueOf(caches[0]);
-				scores[top20Rank-1] = Integer.valueOf(caches[2]);
-				nickNames[top20Rank-1] = caches[1];
-				ranks[top20Rank-1] = top20Rank;
-				
-				if(caches[0].equals("20")){
-					minScore = Integer.valueOf(caches[2]);
-				}			
-				map.put(Integer.valueOf(caches[0]), rankInfo);
-			}
-			topRank = gameInfo.getInt("topRank", -1);
-			topScore = gameInfo.getInt("topScore", 0);
-			if(score > topScore){
-				topScore = score;
-			}
-			if(topScore > minScore){
-				map.clear();
-				topRank = 1;
-				for(int i=0;i<scores.length;i++){
-					if(topScore < scores[i]){
-						topRank ++;
-					}else{
-						break;
+				Map<Integer,Map<String,String>> map = new HashMap<Integer,Map<String,String>>();
+				Map<String,String> rankInfo = null;
+				int topRank = 1;
+				int topScore = 0;
+				int minScore = 0;
+				String nickName = gameInfo.getString("nickName", "unknown");
+				Long lastCacheTime = gameInfo.getLong("lastCacheTime", 0);
+				String rankInfoStr20 = gameInfo.getString("rankInfoStr20", "");
+				int[] scores = new int[20];
+				String[] nickNames = new String[20];
+				int[] ranks = new int[20];
+				int top20Rank = 0;
+				if(rankInfoStr20 != null && !rankInfoStr20.equals("") && (System.currentTimeMillis() - lastCacheTime) < cacheLife * 60 * 60 * 1000){
+					for(int i=1;i<21;i++){
+						String cacheRankInfo = gameInfo.getString("rankInfoStr" + i, "");
+						String[] caches = cacheRankInfo.split(",");
+						rankInfo = new HashMap<String,String>();
+
+						rankInfo.put("rank", caches[0]);
+						rankInfo.put("nickName", caches[1]);
+						rankInfo.put("score", caches[2]);
+						
+						top20Rank = Integer.valueOf(caches[0]);
+						scores[top20Rank-1] = Integer.valueOf(caches[2]);
+						nickNames[top20Rank-1] = caches[1];
+						ranks[top20Rank-1] = top20Rank;
+						
+						if(caches[0].equals("20")){
+							minScore = Integer.valueOf(caches[2]);
+						}			
+						map.put(Integer.valueOf(caches[0]), rankInfo);
 					}
-				}
-				for(int i=1;i<=20;i++){
-					rankInfo = new HashMap<String, String>();
-					if(i < topRank){					
-	    				rankInfo.put("rank", String.valueOf(i));
-	    				rankInfo.put("nickName", nickNames[i-1]);
-	    				rankInfo.put("score", String.valueOf(scores[i-1]));
-					}else if(i == topRank){
+					topRank = gameInfo.getInt("topRank", -1);
+					topScore = gameInfo.getInt("topScore", 0);
+					if(score > topScore){
+						topScore = score;
+					}
+					if(topScore > minScore){
+						map.clear();
+						topRank = 1;
+						for(int i=0;i<scores.length;i++){
+							if(topScore < scores[i]){
+								topRank ++;
+							}else{
+								break;
+							}
+						}
+						for(int i=1;i<=20;i++){
+							rankInfo = new HashMap<String, String>();
+							if(i < topRank){					
+			    				rankInfo.put("rank", String.valueOf(i));
+			    				rankInfo.put("nickName", nickNames[i-1]);
+			    				rankInfo.put("score", String.valueOf(scores[i-1]));
+							}else if(i == topRank){
+								rankInfo.put("rank", String.valueOf(topRank));
+			    				rankInfo.put("nickName", nickName);
+			    				rankInfo.put("score", String.valueOf(topScore));
+							}else{
+			    				rankInfo.put("rank", String.valueOf(i));
+			    				rankInfo.put("nickName", nickNames[i-2]);
+			    				rankInfo.put("score", String.valueOf(scores[i-2]));
+							}
+		    				map.put(i, rankInfo);
+						}
+					}else if(topScore == minScore){
+						topRank = 20;
+						rankInfo = new HashMap<String, String>();
 						rankInfo.put("rank", String.valueOf(topRank));
-	    				rankInfo.put("nickName", nickName);
-	    				rankInfo.put("score", String.valueOf(topScore));
+						rankInfo.put("nickName", nickName);
+						rankInfo.put("score", String.valueOf(topScore));
+						map.put(20, rankInfo);
 					}else{
-	    				rankInfo.put("rank", String.valueOf(i));
-	    				rankInfo.put("nickName", nickNames[i-2]);
-	    				rankInfo.put("score", String.valueOf(scores[i-2]));
+						topRank = 20 + (minScore - topScore) / 5;
 					}
-    				map.put(i, rankInfo);
+					editor.putInt("topRank", topRank);
+					rankInfo = new HashMap<String, String>();
+					rankInfo.put("rank", String.valueOf(topRank));
+					rankInfo.put("nickName", nickName);
+					rankInfo.put("score", String.valueOf(topScore));
+					map.put(0, rankInfo);
+					editor.commit();
+					callback.result(true,map);
+					return null;
 				}
-			}else if(topScore == minScore){
-				topRank = 20;
-				rankInfo = new HashMap<String, String>();
-				rankInfo.put("rank", String.valueOf(topRank));
-				rankInfo.put("nickName", nickName);
-				rankInfo.put("score", String.valueOf(topScore));
-				map.put(20, rankInfo);
-			}else{
-				topRank = 20 + (minScore - topScore) / 5;
+				
+
+				if(!isSuccessInit() || playerId == null || playerId.equals("")){
+					callback.result(false, null);
+					return null;
+				}
+				
+				
+				List<AVObject> avObjects = null;//返回的排名表中的对象
+				AVQuery<AVObject> query = new AVQuery<AVObject>("Player");
+
+				AVObject user = null;
+				try {
+					user = query.get(playerId);
+					topScore = gameInfo.getInt("topScore", user.getInt("score"));
+					nickName = gameInfo.getString("nickName", user.getString("nickName"));
+				} catch (AVException e1) {
+					Log.e("POXIAOCLOUD","fail select ...");
+				}
+				
+				query.orderByDescending("score");	//按score字段的降序查找
+				query.setLimit(50);
+				
+				String rankInfoStr = "";
+
+				try {
+				    avObjects = query.find();
+				    
+				    if(avObjects != null){			    	
+		    			for(int i=1;i<avObjects.size()+1;i++){
+		    				rankInfo = new HashMap<String, String>();
+		    				rankInfo.put("rank", String.valueOf(i));
+		    				rankInfo.put("nickName", avObjects.get(i-1).getString("nickName"));
+		    				rankInfo.put("score", String.valueOf(avObjects.get(i-1).getInt("score")));
+		    				rankInfoStr = i + "," + avObjects.get(i-1).getString("nickName") + "," + avObjects.get(i-1).getInt("score");
+		    				editor.putString("rankInfoStr" + i, rankInfoStr);
+			    			map.put(i, rankInfo);
+			    			if(i == 20){
+			    				break;
+			    			}
+		    			}
+		    			editor.commit();
+		    			if(avObjects.size() >= 20){
+		    				minScore = Integer.valueOf(map.get(20).get("score"));
+		    			}else{
+		    				minScore = Integer.valueOf(map.get(avObjects.size()-1).get("score"));
+		    			}
+				    	if(avObjects.contains(user)){
+							topRank = avObjects.indexOf(user) + 1;
+				    	}else{
+					    	topRank = avObjects.size() + (minScore - topScore)/5;
+				    	}
+					    Log.i("POXIAOCLOUD","topRank=" + topRank);
+						rankInfo =new HashMap<String,String>();
+						rankInfo.put("rank", String.valueOf(topRank));
+						rankInfo.put("score", String.valueOf(topScore));
+						rankInfo.put("nickName", nickName);
+						map.put(0,rankInfo);
+					    Log.d("POXIAOCLOUD", "success select ...");
+					    editor.putInt("topRank", topRank);
+					    editor.putInt("topScore", topScore);
+					    editor.putString("nickName", nickName);
+						editor.putLong("lastCacheTime", System.currentTimeMillis());
+						editor.commit();				
+					    callback.result(true,map);
+				    }else{
+					    callback.result(false, null);
+					    return null;
+				    }
+				} catch (AVException e) {
+				    Log.d("POXIAOCLOUD", "fail select ...");
+				    callback.result(false, null);
+				    return null;
+				}
+				return null;
 			}
-			editor.putInt("topRank", topRank);
-			rankInfo = new HashMap<String, String>();
-			rankInfo.put("rank", String.valueOf(topRank));
-			rankInfo.put("nickName", nickName);
-			rankInfo.put("score", String.valueOf(topScore));
-			map.put(0, rankInfo);
-			editor.commit();
-			callback.result(true,map);
-			return;
-		}
-		
-
-		if(!isSuccessInit() || playerId == null || playerId.equals("")){
-			callback.result(false, null);
-			return;
-		}
-		
-		
-		List<AVObject> avObjects = null;//返回的排名表中的对象
-		AVQuery<AVObject> query = new AVQuery<AVObject>("Player");
-
-		AVObject user = null;
-		try {
-			user = query.get(playerId);
-			topScore = gameInfo.getInt("topScore", user.getInt("score"));
-			nickName = gameInfo.getString("nickName", user.getString("nickName"));
-		} catch (AVException e1) {
-			Log.e("POXIAOCLOUD","fail select ...");
-		}
-		
-		query.orderByDescending("score");	//按score字段的降序查找
-		query.setLimit(50);
-		
-		String rankInfoStr = "";
-
-		try {
-		    avObjects = query.find();
-		    
-		    if(avObjects != null){			    	
-    			for(int i=1;i<avObjects.size()+1;i++){
-    				rankInfo = new HashMap<String, String>();
-    				rankInfo.put("rank", String.valueOf(i));
-    				rankInfo.put("nickName", avObjects.get(i-1).getString("nickName"));
-    				rankInfo.put("score", String.valueOf(avObjects.get(i-1).getInt("score")));
-    				rankInfoStr = i + "," + avObjects.get(i-1).getString("nickName") + "," + avObjects.get(i-1).getInt("score");
-    				editor.putString("rankInfoStr" + i, rankInfoStr);
-	    			map.put(i, rankInfo);
-	    			if(i == 20){
-	    				break;
-	    			}
-    			}
-    			editor.commit();
-    			if(avObjects.size() >= 20){
-    				minScore = Integer.valueOf(map.get(20).get("score"));
-    			}else{
-    				minScore = Integer.valueOf(map.get(avObjects.size()-1).get("score"));
-    			}
-		    	if(avObjects.contains(user)){
-					topRank = avObjects.indexOf(user) + 1;
-		    	}else{
-			    	topRank = avObjects.size() + (minScore - topScore)/5;
-		    	}
-			    Log.i("POXIAOCLOUD","topRank=" + topRank);
-				rankInfo =new HashMap<String,String>();
-				rankInfo.put("rank", String.valueOf(topRank));
-				rankInfo.put("score", String.valueOf(topScore));
-				rankInfo.put("nickName", nickName);
-				map.put(0,rankInfo);
-			    Log.d("POXIAOCLOUD", "success select ...");
-			    editor.putInt("topRank", topRank);
-			    editor.putInt("topScore", topScore);
-			    editor.putString("nickName", nickName);
-				editor.putLong("lastCacheTime", System.currentTimeMillis());
-				editor.commit();				
-			    callback.result(true,map);
-		    }else{
-			    callback.result(false, null);
-			    return;
-		    }
-		} catch (AVException e) {
-		    Log.d("POXIAOCLOUD", "fail select ...");
-		    callback.result(false, null);
-		    return;
-		}
+		}.execute("");	
 	}
 		
 	private static SharedPreferences gameInfo; 
