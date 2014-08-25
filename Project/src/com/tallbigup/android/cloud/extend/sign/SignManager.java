@@ -66,7 +66,7 @@ public class SignManager {
 	 */
 	public static boolean isSignToday(Context context) {
 		if(SignUtil.getBetweenDay(
-				new Date(), SignUtil.getDateByString(SignManager.getLastSignDay(context))) == 0) {
+				new Date(), SignUtil.getDateByString(SignManager.getLastSignDay(context)) ) == 0) {
 			return true;
 		}
 		return false;

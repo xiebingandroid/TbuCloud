@@ -15,9 +15,12 @@ public class SignUtil {
 	 * 得到两个日期相差的天数(date2 - date1的天数)。
 	 * @param date1
 	 * @param date2
-	 * @return
+	 * @return -1 参数不合法。
 	 */
 	public static int getBetweenDay(Date date1, Date date2) {
+		if(date1 == null || date2 == null) {
+			return  -1;
+		}
 		Calendar d1 = new GregorianCalendar();
 		d1.setTime(date1);
 		Calendar d2 = new GregorianCalendar();
