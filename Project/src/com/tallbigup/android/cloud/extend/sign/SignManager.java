@@ -80,7 +80,7 @@ public class SignManager {
 	public static void sign(Context context) {
 		if(!isSignToday(context)) {	// 如果今天没有签到过
 			SignManager.saveLastSignDay(context, SignUtil.getStringByDate(new Date()));
-			SignManager.saveSignDays(context, SignManager.getCurrentSignDays(context));
+			SignManager.saveSignDays(context, SignManager.getCurrentSignDays(context)+1);
 			if(getNeedNotifyPlayer(context)) {
 				// TODO : 设置本地提醒任务
 			}
