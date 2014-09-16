@@ -39,6 +39,15 @@ public class NotifyManager {
 		manager.cancel(id);
 	}
 	
+	public static boolean isStartByNotifaction(Intent intent) {
+		if(intent.getExtras().getInt(NativeNotifyConstants.START_BY_NOTIFY_KEY_STARTTYPE) ==
+				NativeNotifyConstants.START_BY_PUSH) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+	
 	/**
 	 * 显示提醒用户进入游戏的notification。
 	 * @param context
