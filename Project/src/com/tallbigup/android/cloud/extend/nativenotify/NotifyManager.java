@@ -33,6 +33,13 @@ public class NotifyManager {
 	 * @param intent
 	 */
 	public static void cleanNofitifcation(Context context, Intent intent){
+		if(intent == null) {
+			return;
+		}
+		if(intent.getExtras() == null) {
+			return;
+		}
+		
 		NotificationManager manager =
 			    (NotificationManager) (context.getSystemService(Context.NOTIFICATION_SERVICE));
 		int id = intent.getExtras().getInt(NativeNotifyConstants.START_BY_NOTIFY_KEY_SEQ);
@@ -40,6 +47,14 @@ public class NotifyManager {
 	}
 	
 	public static boolean isStartByNotifaction(Intent intent) {
+		if(intent == null) {
+			return false;
+		}
+		
+		if(intent.getExtras() == null) {
+			return false;
+		}
+		
 		if(intent.getExtras().getInt(NativeNotifyConstants.START_BY_NOTIFY_KEY_STARTTYPE) ==
 				NativeNotifyConstants.START_BY_PUSH) {
 			return true;
