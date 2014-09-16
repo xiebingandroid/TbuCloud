@@ -117,12 +117,13 @@ public class NotifyManager {
 		ComponentName cn = new ComponentName(context, 
 				"com.tallbigup.android.cloud.extend.nativenotify.NativeNotifyReceiver");
 	    ActivityInfo info;
-		try {
+	    
+	    try {
 			info = context.getPackageManager().getReceiverInfo(cn, PackageManager.GET_META_DATA);
 			
 			Bundle bundle1 = info.metaData;
-			String packageinfo = String.valueOf(bundle1.getInt(NativeNotifyConstants.METADATA_PACKAGEINFO));
-			String launchInfo = String.valueOf(bundle1.getInt(NativeNotifyConstants.METADATA_LAUNCHINFO));
+			String packageinfo = bundle1.getString(NativeNotifyConstants.METADATA_PACKAGEINFO);
+			String launchInfo = bundle1.getString(NativeNotifyConstants.METADATA_LAUNCHINFO);
 			int iconId = bundle1.getInt(NativeNotifyConstants.METADATA_PUSHICON);
 			
 			AlarmManager am = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
