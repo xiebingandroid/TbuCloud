@@ -142,6 +142,13 @@ public class NotifyManager {
 		
 	}
 	
+	public static void cleanGameNotification(Context context) {
+		Intent alarmIntent = new Intent(context, NativeNotifyReceiver.class);
+		PendingIntent pIntent = PendingIntent.getBroadcast(context, 0, alarmIntent, 0);
+        AlarmManager am = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        am.cancel(pIntent);
+	}
+	
 	/**
 	 * 判断某个应用是否已经安装
 	 * @param context
