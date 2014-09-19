@@ -603,7 +603,7 @@ public class TbuCloud {
 	 * @param callback
 	 *            更新结果回调
 	 */
-	public static void updateGamePropInfo(final String className,
+	public static void updateGamePropConsume(final String className,
 			final String version, final String currentPropName,
 			final int propCounts, final int propMoney,
 			final TbuCallback callback) {
