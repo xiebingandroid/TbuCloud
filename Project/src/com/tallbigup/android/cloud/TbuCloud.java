@@ -621,11 +621,13 @@ public class TbuCloud {
 								+ ";lastMoney" + lastMoney);
 						object.put("counts", lastCounts + propCounts);
 						object.put("money", lastMoney + propMoney);
+						object.saveInBackground();
 					} else {
 						gamePropInfo.put("version", version);
 						gamePropInfo.put("propName", currentPropName);
 						gamePropInfo.put("counts", propCounts);
 						gamePropInfo.put("money", propMoney);
+						gamePropInfo.saveInBackground();
 					}
 				} else {
 					Log.e("POXIAOCLOUD", "AVException" + e);
