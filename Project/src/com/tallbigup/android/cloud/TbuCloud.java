@@ -588,7 +588,7 @@ public class TbuCloud {
 	}
 
 	/**
-	 * 更新游戏道具、技能使用信息
+	 * 更新游戏道具、技能消耗信息
 	 * 
 	 * @param className
 	 *            对应的表名
@@ -658,23 +658,7 @@ public class TbuCloud {
 						});
 					}
 				} else {
-					gamePropInfo.put("version", version);
-					gamePropInfo.put("propName", currentPropName);
-					gamePropInfo.put("counts", propCounts);
-					gamePropInfo.put("money", propMoney);
-					gamePropInfo.saveInBackground(new SaveCallback() {
-						public void done(AVException e) {
-							if (e == null) {
-								if (callback != null) {
-									callback.result(true);
-								}
-							} else {
-								if (callback != null) {
-									callback.result(false);
-								}
-							}
-						}
-					});
+					Log.e("POXIAOCLOUD", "AVException" + e);
 				}
 			}
 		});
