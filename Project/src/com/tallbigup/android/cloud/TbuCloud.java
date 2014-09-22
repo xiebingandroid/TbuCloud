@@ -605,14 +605,7 @@ public class TbuCloud {
 	 */
 	public static void updateGamePropConsume(final String className,
 			final String version, final String currentPropName,
-			final int propCounts, final int propMoney,
-			final TbuCallback callback) {
-		if (!TbuCloud.isSuccessInit()) {
-			if (callback != null) {
-				callback.result(false);
-			}
-			return;
-		}
+			final int propCounts, final int propMoney) {
 		final AVObject gamePropInfo = new AVObject(className);
 		AVQuery<AVObject> query = new AVQuery<AVObject>(className);
 		query.whereEqualTo("version", version);
@@ -628,34 +621,11 @@ public class TbuCloud {
 								+ ";lastMoney" + lastMoney);
 						object.put("counts", lastCounts + propCounts);
 						object.put("money", lastMoney + propMoney);
-						object.saveInBackground(new SaveCallback() {
-							@Override
-							public void done(AVException e) {
-								if (e == null) {
-									Log.i("POXIAOCLOUD", "Save successfully.");
-								} else {
-									Log.e("POXIAOCLOUD", "Save failed.");
-								}
-							}
-						});
 					} else {
 						gamePropInfo.put("version", version);
 						gamePropInfo.put("propName", currentPropName);
 						gamePropInfo.put("counts", propCounts);
 						gamePropInfo.put("money", propMoney);
-						gamePropInfo.saveInBackground(new SaveCallback() {
-							public void done(AVException e) {
-								if (e == null) {
-									if (callback != null) {
-										callback.result(true);
-									}
-								} else {
-									if (callback != null) {
-										callback.result(false);
-									}
-								}
-							}
-						});
 					}
 				} else {
 					Log.e("POXIAOCLOUD", "AVException" + e);
