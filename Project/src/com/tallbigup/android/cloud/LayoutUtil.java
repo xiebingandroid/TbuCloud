@@ -20,6 +20,10 @@ public class LayoutUtil {
 	private static int tipDialogStyleId = 0;
 	private static int buttonCloseStateResId = 0;
 	private static int progressLoadingResId = 0;
+	private static int feedbackLayoutResId = 0;
+	private static int feedbackCloseStateResId = 0;
+	private static int feedbackConfirmStateResId = 0;
+	private static int feedbackAdviceResId = 0;
 	
 	public static int getButtonCloseStateResId() {
 		return buttonCloseStateResId;
@@ -167,4 +171,37 @@ public class LayoutUtil {
 	public static void setTipDialogTxtResId(int tipDialogTxtResId) {
 		LayoutUtil.tipDialogTxtResId = tipDialogTxtResId;
 	}
+
+	public static int getFeedbackCloseStateResId() {
+		return feedbackCloseStateResId;
+	}
+
+	public static void setFeedbackCloseStateResId(int feedbackCloseStateResId) {
+		LayoutUtil.feedbackCloseStateResId = feedbackCloseStateResId;
+	}
+
+	public static int getFeedbackConfirmStateResId() {
+		return feedbackConfirmStateResId;
+	}
+
+	public static void setFeedbackConfirmStateResId(int feedbackConfirmStateResId) {
+		LayoutUtil.feedbackConfirmStateResId = feedbackConfirmStateResId;
+	}
+
+	public static int getFeedbackLayoutResId() {
+		return feedbackLayoutResId;
+	}
+
+	public static void setFeedbackLayoutResId(int feedbackLayoutResId) {
+		LayoutUtil.feedbackLayoutResId = feedbackLayoutResId;
+	}
+
+	public static int getFeedbackAdviceResId() {
+		return feedbackAdviceResId;
+	}
+
+	public static void setFeedbackAdviceResId(int feedbackAdviceResId) {
+		LayoutUtil.feedbackAdviceResId = feedbackAdviceResId;
+	}
+	
 }

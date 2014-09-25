@@ -38,6 +38,7 @@ import android.widget.RemoteViews;
 
 import com.tallbigup.android.cloud.LayoutUtil;
 import com.tallbigup.android.cloud.TbuCloud;
+import com.tallbigup.android.cloud.extend.activitynotify.ActivityNotifyManager;
 import com.tallbigup.android.cloud.push.LoadPushImageUtil;
 
 public class PxBroadcastReceiver extends BroadcastReceiver{
@@ -48,6 +49,10 @@ public class PxBroadcastReceiver extends BroadcastReceiver{
 	private Notification notification;
 	private NotificationManager manager;
 	private int id;
+	private String content;
+	
+	private String prizeType = "-1";
+	private String prizeNum = "0";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -57,7 +62,7 @@ public class PxBroadcastReceiver extends BroadcastReceiver{
     	String contentUrl = null;
     	String iconUrl = null;
     	String title = null;
-    	String content = null;
+    	content = null;
     	String version = null;
     	String channelId = null;
     	String province = null;
@@ -66,6 +71,7 @@ public class PxBroadcastReceiver extends BroadcastReceiver{
     	String userType = null;
     	String channelIdType = "0";
     	String provinceType = "0";
+    	prizeNum = "0";
         Log.d(TAG, "Get Broadcat");
         String action = intent.getAction();
         Log.d(TAG,"action=" + action);
@@ -113,6 +119,10 @@ public class PxBroadcastReceiver extends BroadcastReceiver{
 	                	channelIdType = json.getString(key);
 	                }else if(key.equals("province_type")){
 	                	provinceType = json.getString(key);
+	                }else if(key.equals("activity_prize_type")){
+	                	prizeType = json.getString("activity_prize_num");
+	                }else if(key.equals("activity_prize_num")){
+	                	prizeNum = json.getString("activity_prize_num");
 	                }
 	            }
 	            if(packInfo != null || launchInfo != null || contentUrl!= null){
@@ -208,10 +218,29 @@ public class PxBroadcastReceiver extends BroadcastReceiver{
         Log.i(TAG,"TbuCloud.getNotifyId(context)=" + TbuCloud.getNotifyId(context));
         manager.cancel(TbuCloud.getNotifyId(context));	
 		Intent intent = new Intent();
+        Random random = new Random(new Date().getTime()); 
+        final int id = random.nextInt(1000000);
 		if(packInfo != null){
 			if(isPackageInstall(context, packInfo)) {
 				intent.addCategory(Intent.CATEGORY_LAUNCHER);
 	            ComponentName cn = new ComponentName(packInfo, launchInfo);
+	            if(prizeType != null && !prizeType.equals("-1")){
+		            intent.putExtra(
+	            			ActivityNotifyManager.START_TYPE, 
+	            			ActivityNotifyManager.START_BY_ACTIVITY_NOTIFY);
+		            intent.putExtra(
+		            		ActivityNotifyManager.NOTITY_ID, 
+		            		id);
+		            intent.putExtra(
+		            		ActivityNotifyManager.PRIZE_NUM,
+		            		prizeNum);
+		            intent.putExtra(
+		            		ActivityNotifyManager.PRIZE_TYPE,
+		            		prizeType);
+		            intent.putExtra(
+		            		ActivityNotifyManager.ACTIVITY_CONTENT,
+		            		content);
+	            }
 	            intent.setComponent(cn);
 			}else {
 //				if(isWifiConn()){
@@ -258,8 +287,6 @@ public class PxBroadcastReceiver extends BroadcastReceiver{
 			    	notification.defaults = Notification.DEFAULT_ALL;
 			    	notification.flags |= Notification.FLAG_AUTO_CANCEL;
 			    	notification.contentIntent = pendingIntent;
-			        Random random = new Random(new Date().getTime()); 
-			        final int id = random.nextInt(1000000);
 			        PxBroadcastReceiver.this.manager = manager;
 			        PxBroadcastReceiver.this.notification = notification;
 			        PxBroadcastReceiver.this.id = id;	

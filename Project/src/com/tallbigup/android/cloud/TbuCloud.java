@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +33,7 @@ import com.avos.avoscloud.AVQuery;
 import com.avos.avoscloud.FindCallback;
 import com.avos.avoscloud.PushService;
 import com.avos.avoscloud.SaveCallback;
+import com.tallbigup.android.cloud.feedback.FeedbackDialog;
 import com.tallbigup.android.cloud.recommend.MoreGameDialog;
 import com.tallbigup.android.cloud.recommend.RecommendCallback;
 
@@ -49,8 +49,6 @@ public class TbuCloud {
 
 	private static String province;
 	private static boolean successInit = false;
-	private static boolean hasGetRecommendFromNet = false;
-
 	private static String appId = "";
 
 	private static String channelId = "";
@@ -453,6 +451,24 @@ public class TbuCloud {
 			}
 		});
 	}
+	
+	public static void setFeedback(final String playerId,final String feedback){
+		AVObject payInfo = new AVObject("Feedback");
+
+		payInfo.put("playerId", playerId); 
+		payInfo.put("feedback", feedback);
+
+		payInfo.saveInBackground(new SaveCallback() {
+			public void done(AVException e) {
+				if (e == null) {
+					Log.e(POXIAO_CLOUD,"上传反馈成功...");
+				} else {
+					Log.e(POXIAO_CLOUD,"上传反馈失败...");
+					e.printStackTrace();
+				}
+			}
+		});
+	}
 
 	/**
 	 * 获取支付开关 支付开关的数据需要在后台配置 type == 1 ： mm支付通道中允许打开新银河支付
@@ -769,7 +785,6 @@ public class TbuCloud {
 							} else {
 								callback.result(true, paramList2);
 							}
-							hasGetRecommendFromNet = true;
 						}
 					}
 				} else {
@@ -1180,6 +1195,23 @@ public class TbuCloud {
 						WindowManager.LayoutParams.FLAG_FULLSCREEN);
 				moreGameDialog.show();
 				moreGameDialog.getWindow().setLayout(LayoutParams.MATCH_PARENT,
+						LayoutParams.MATCH_PARENT);
+			}
+		});
+	}
+	
+	public static void showFeedback(final Activity activity,final String playerId) {
+		activity.runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				FeedbackDialog feedbackDialog = new FeedbackDialog(activity,playerId);
+				feedbackDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+				feedbackDialog.getWindow().setFlags(
+						WindowManager.LayoutParams.FLAG_FULLSCREEN,
+						WindowManager.LayoutParams.FLAG_FULLSCREEN);
+				feedbackDialog.show();
+				feedbackDialog.getWindow().setLayout(LayoutParams.MATCH_PARENT,
 						LayoutParams.MATCH_PARENT);
 			}
 		});
