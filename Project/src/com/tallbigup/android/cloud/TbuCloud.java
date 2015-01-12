@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import android.app.Activity;
 import android.content.Context;
@@ -87,20 +88,19 @@ public class TbuCloud {
 
 		TbuCloud.appId = appId;
 
-		AVOSCloud.useAVCloudCN();
+		AVOSCloud.useAVCloudCN(); 
 		AVOSCloud.initialize(context, appId, appKey);
 
 		PushService.setDefaultPushCallback(context, cls);
 		PushService.subscribe(context, "public", cls);
 		AVInstallation.getCurrentInstallation().saveInBackground();
-
+		
 		AVAnalytics.enableCrashReport(context, true);
 
 		sendReq();
-		getShareContent();
 
 		channelId = getChannelId(context);
-
+		
 		successInit = true;
 		if (callback != null) {
 			callback.result(successInit);
@@ -346,44 +346,39 @@ public class TbuCloud {
 			final String gameVersionCode, final String level, final int money,
 			final String enterId, final int payMoney, final int score,
 			final CreatePlayerCallback callback) {
-		new AsyncTask<String, Integer, String>() {
-
-			@Override
-			protected String doInBackground(String... params) {
-
-				if (TbuCloud.isSuccessInit()) {
-					if (callback != null) {
-						callback.result(false, null);
-					}
+			if (TbuCloud.isSuccessInit()) {
+				if (callback != null) {
+					callback.result(false, null);
 				}
+			}
 
-				final AVObject player = new AVObject("Player");
+			final Player player = new Player();
+			
+			player.setUsername(enterId+"_"+nickName+new Random().nextInt(100));
+			player.setPassword("abc123");
+			player.setNickName(nickName);
+			player.setIMSI(IMSI);
+			player.setGameVersionCode(gameVersionCode);
+			player.setLevel(level);
+			player.setMoney(money);
+			player.setPayMoney(payMoney);
+			player.setEnterId(enterId);
+			player.setScore(score);
 
-				player.put("nickName", nickName);
-				player.put("IMSI", IMSI);
-				player.put("money", money);
-				player.put("level", level);
-				player.put("enterId", enterId);
-				player.put("gameVersionCode", gameVersionCode);
-				player.put("payMoney", payMoney);
-				player.put("score", score);
-
-				player.saveInBackground(new SaveCallback() {
-					public void done(AVException e) {
-						if (e == null) {
-							if (callback != null) {
-								callback.result(true, player.getObjectId());
-							}
-						} else {
-							if (callback != null) {
-								callback.result(false, null);
-							}
+			player.saveInBackground(new SaveCallback() {
+				public void done(AVException e) {
+					if (e == null) {
+						if (callback != null) {
+							callback.result(true, player.getObjectId());
+						}
+					} else {
+						e.printStackTrace();
+						if (callback != null) {
+							callback.result(false, null);
 						}
 					}
-				});
-				return null;
-			}
-		}.execute("");
+				}
+			});
 	}
 
 	/**
@@ -480,6 +475,7 @@ public class TbuCloud {
 			if (callback != null) {
 				callback.result(false);
 			}
+			return;
 		}
 
 		AVQuery<AVObject> query = new AVQuery<AVObject>("Switch");
@@ -1181,6 +1177,33 @@ public class TbuCloud {
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		activity.startActivity(Intent.createChooser(intent, activity.getTitle()));
 	}
+	
+	/**
+	 * 获取分享内容
+	 */
+	public static void getShareContent(){
+		if (!TbuCloud.isSuccessInit()) {
+			return;
+		}
+		
+		AVQuery<AVObject> query = new AVQuery<AVObject>("Share");
+		query.whereExists("share_content");
+		query.findInBackground(new FindCallback<AVObject>() {
+			public void done(List<AVObject> avObjects, AVException e) {
+				if (e == null) {
+					if (avObjects != null && !avObjects.isEmpty()) {
+						AVObject obj = avObjects.get(0);
+						shareContent = obj.getString("share_content");
+						Log.i("POXIAOCLOUD","shareContent=" + shareContent);
+					} else {
+						shareContent = "";
+					}
+				} else {
+					shareContent = "";
+				}
+			}
+		});
+	}
 
 	public static void showMoreGame(final Activity activity) {
 		activity.runOnUiThread(new Runnable() {
@@ -1219,25 +1242,6 @@ public class TbuCloud {
 
 	public static String getAppId() {
 		return TbuCloud.appId;
-	}
-
-	private static void getShareContent() {
-		AVQuery<AVObject> query = new AVQuery<AVObject>("Share");
-
-		query.findInBackground(new FindCallback<AVObject>() {
-
-			@Override
-			public void done(List<AVObject> list, AVException e) {
-				if (e == null) {
-					Log.e("POXIAOCLOUD", "success seclet ...");
-					shareContent = list.get(0).getString("share_content");
-					Log.i("POXIAOCLOUD", "shareContent=" + shareContent);
-				} else {
-					Log.e("POXIAOCLOUD", "failed seclet ...");
-					e.printStackTrace();
-				}
-			}
-		});
 	}
 
 	private static String getChannelId(Context context) {
