@@ -243,23 +243,9 @@ public class PxBroadcastReceiver extends BroadcastReceiver{
 	            }
 	            intent.setComponent(cn);
 			}else {
-//				if(isWifiConn()){
-//					needDownload = true;
-//		            download(contentUrl,version);
-//		            if(isSDCardExist()){
-//		            	fileDir = getSdFilePath(version);
-//		            }else{
-//		            	fileDir = context.getFilesDir().getAbsolutePath() + File.separator +
-//	            				BUFFER_FILE_NAME_PRO + version + ".apk";
-//		            }
-//		    		Uri uri = Uri.fromFile( new File(fileDir) ); 
-//		    		intent = new Intent(Intent.ACTION_VIEW);
-//		        	intent.setDataAndType(uri,"application/vnd.android.package-archive");
-//				}else{
-					intent.setAction("android.intent.action.VIEW");
-		            Uri content_url = Uri.parse(contentUrl);
-		            intent.setData(content_url);
-//				}
+				intent.setAction("android.intent.action.VIEW");
+	            Uri content_url = Uri.parse(contentUrl);
+	            intent.setData(content_url);
 			}	
 		}else{
 			intent.setAction("android.intent.action.VIEW");
@@ -268,37 +254,17 @@ public class PxBroadcastReceiver extends BroadcastReceiver{
 		}
     	final PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);	    	
     	final Notification notification = new Notification();
-    	final RemoteViews contentView = new RemoteViews(context.getPackageName(), LayoutUtil.getNotifyLayoutResId());
-    	try {
-			LoadPushImageUtil.getImageStream(context, iconUrl, new ImageCallback() {
-				
-				@Override
-				public void result(Bitmap bitmap) {
-					Log.i(TAG,"bitmap=" + bitmap);
-					if(bitmap != null){
-				    	contentView.setImageViewBitmap(LayoutUtil.getNotifyIconResId(), bitmap);
-					}else{
-						contentView.setImageViewBitmap(LayoutUtil.getNotifyIconResId(), BitmapFactory.decodeResource(context.getResources(), LayoutUtil.getPushIconResId()));
-					}
-			    	contentView.setTextViewText(LayoutUtil.getNotifyTitleResId(), title);
-			    	contentView.setTextViewText(LayoutUtil.getNotifyContentResId(), content);
-			    	notification.contentView = contentView;
-			    	notification.icon=LayoutUtil.getPushIconResId();
-			    	notification.defaults = Notification.DEFAULT_ALL;
-			    	notification.flags |= Notification.FLAG_AUTO_CANCEL;
-			    	notification.contentIntent = pendingIntent;
-			        PxBroadcastReceiver.this.manager = manager;
-			        PxBroadcastReceiver.this.notification = notification;
-			        PxBroadcastReceiver.this.id = id;	
-			        TbuCloud.saveNotifyId(context, id);
-			        if(!needDownload){ 
-			            manager.notify(id, notification); 
-			        }
-				}
-			});
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+    	notification.icon=LayoutUtil.getPushIconResId();
+    	notification.defaults = Notification.DEFAULT_ALL;
+    	notification.flags |= Notification.FLAG_AUTO_CANCEL;
+    	notification.setLatestEventInfo(context, title, content, pendingIntent);
+        PxBroadcastReceiver.this.manager = manager;
+        PxBroadcastReceiver.this.notification = notification;
+        PxBroadcastReceiver.this.id = id;	
+        TbuCloud.saveNotifyId(context, id);
+        if(!needDownload){ 
+            manager.notify(id, notification); 
+        }
 	 }	
     
     private boolean isPackageInstall(Context context, String packinfo) {

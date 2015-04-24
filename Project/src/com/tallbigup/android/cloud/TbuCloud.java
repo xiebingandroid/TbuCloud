@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Random;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -102,6 +104,8 @@ public class TbuCloud {
 		channelId = getChannelId(context);
 		
 		successInit = true;
+		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+				Context.MODE_PRIVATE);
 		if (callback != null) {
 			callback.result(successInit);
 		}
@@ -420,7 +424,11 @@ public class TbuCloud {
 													// "success"）
 		payInfo.put("money", money); // 单位：分
 		payInfo.put("payType", payType);
-		payInfo.put("userId", userId);
+		if(userId == null){
+			payInfo.put("userId", "");
+		}else{
+			payInfo.put("userId", userId);
+		}
 		payInfo.put("desc", desc);
 		payInfo.put("payCount", payCount);
 		payInfo.put("enterId", enterId);
@@ -428,11 +436,19 @@ public class TbuCloud {
 		payInfo.put("errorCode", errorCode);
 		payInfo.put("errorMessgae", errorMessgae);
 		payInfo.put("gameVersion", gameVersion);
-		payInfo.put("payVersionId", payVersionId);
+		if(payVersionId == null){
+			payInfo.put("payVersionId", "1");
+		}else{
+			payInfo.put("payVersionId", payVersionId);
+		}
 		payInfo.put("levelId", levelId);
 		payInfo.put("carrier", carrier);
 		payInfo.put("imsi", imsi);
-		payInfo.put("payPluginName", payPluginName);
+		if(payPluginName == null){
+			payInfo.put("payPluginName", "");
+		}else{
+			payInfo.put("payPluginName", payPluginName);
+		}
 		payInfo.put("userType", userType); // "new" 首次登陆的用户， "old"非首次登陆的用户
 
 		payInfo.saveInBackground(new SaveCallback() {
@@ -1268,5 +1284,14 @@ public class TbuCloud {
 		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		return gameInfo.getInt("notify_id", 0);
+	}
+	
+	public boolean isAppVisible(Context activity) {
+        ActivityManager am = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
+        ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
+        if (cn.getPackageName().equals(activity.getPackageName())) {
+            return true;
+        }
+        return false;
 	}
 }
