@@ -10,6 +10,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
+import com.tbu.androidtools.util.StringUtils;
+
 /**
  * HTTP工具类
  * 

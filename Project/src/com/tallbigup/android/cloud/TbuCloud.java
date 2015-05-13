@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,7 +23,6 @@ import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-
 import com.avos.avoscloud.AVAnalytics;
 import com.avos.avoscloud.AVException;
 import com.avos.avoscloud.AVInstallation;
@@ -1283,14 +1280,5 @@ public class TbuCloud {
 		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		return gameInfo.getInt("notify_id", 0);
-	}
-	
-	public boolean isAppVisible(Context activity) {
-        ActivityManager am = (ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE);
-        ComponentName cn = am.getRunningTasks(1).get(0).topActivity;
-        if (cn.getPackageName().equals(activity.getPackageName())) {
-            return true;
-        }
-        return false;
 	}
 }
