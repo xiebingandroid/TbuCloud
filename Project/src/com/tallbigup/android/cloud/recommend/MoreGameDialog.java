@@ -114,7 +114,7 @@ public class MoreGameDialog extends Dialog{
 			d.dismiss();
 			return;
 		}
-		TbuCloud.getRecommendList(getChannelId(activity), new RecommendCallback() {
+		TbuCloud.getRecommendList(getContext(), getChannelId(activity), new RecommendCallback() {
 
 			@Override
 			public void result(boolean success,

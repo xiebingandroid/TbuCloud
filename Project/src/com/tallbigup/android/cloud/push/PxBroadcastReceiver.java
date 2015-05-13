@@ -3,7 +3,6 @@ package com.tallbigup.android.cloud.push;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -11,10 +10,8 @@ import java.net.URL;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Random;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -26,20 +23,15 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.RemoteViews;
-
 import com.tallbigup.android.cloud.LayoutUtil;
 import com.tallbigup.android.cloud.TbuCloud;
 import com.tallbigup.android.cloud.extend.activitynotify.ActivityNotifyManager;
-import com.tallbigup.android.cloud.push.LoadPushImageUtil;
 
 public class PxBroadcastReceiver extends BroadcastReceiver{
 	private static final String TAG = "MCH";
@@ -174,26 +166,6 @@ public class PxBroadcastReceiver extends BroadcastReceiver{
 			            			return;
 			            		}else{
 				            		Log.i(TAG,"反向匹配渠道号成功");
-			            		}
-			            	}
-		            	}
-	            	}
-	            	Log.i(TAG,"province=" + TbuCloud.getUserProvince());
-	            	if(province != null && !province.equals("")){
-		            	String[] provinces = province.split("&");
-		            	if(provinceType.equals("0")){
-			            	for(int i=0;i<provinces.length;i++){
-			            		if(TbuCloud.getUserProvince().equals(provinces[i])){
-			            			break;
-			            		}
-			            		if(i >= provinces.length-1){
-			            			return;
-			            		}
-			            	}
-		            	}else{
-			            	for(int i=0;i<provinces.length;i++){
-			            		if(TbuCloud.getUserProvince().equals(provinces[i])){
-			            			return;
 			            		}
 			            	}
 		            	}

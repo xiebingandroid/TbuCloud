@@ -1,10 +1,5 @@
 package com.tallbigup.android.cloud;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -35,9 +30,15 @@ import com.avos.avoscloud.SaveCallback;
 import com.tallbigup.android.cloud.feedback.FeedbackDialog;
 import com.tallbigup.android.cloud.recommend.MoreGameDialog;
 import com.tallbigup.android.cloud.recommend.RecommendCallback;
+import com.tbu.androidtools.Debug;
 
 public class TbuCloud {
 
+	/**
+	 * 是否打开应用信息记录（不影响统计事件）。
+	 */
+	public static boolean openDataRecord = true;
+	
 	public static final String POXIAO_CLOUD = "px_cloud";
 	public static final String POXIAO_CLOUD_PAY = "px_cloud_pay";
 	public static final String POXIAO_CLOUD_LOGIN = "px_cloud_login";
@@ -45,8 +46,6 @@ public class TbuCloud {
 
 	public static final int DEFAULT_CACHE_LIFE = 24;
 	public static int cacheLife = DEFAULT_CACHE_LIFE;
-
-	private static String province;
 	private static boolean successInit = false;
 	private static String appId = "";
 
@@ -66,20 +65,9 @@ public class TbuCloud {
 		return successInit;
 	}
 
-	/**
-	 * 初始化插件。
-	 * 
-	 * @param context
-	 * @param callback
-	 * @param appId
-	 * @param appKey
-	 * @param gameVersion
-	 * @param cls
-	 */
 	public static void initCloud(final Context context,
 			final TbuCallback callback, final String appId,
-			final String appKey, final String gameVersion,
-			final Class<? extends Activity> cls) {
+			final String appKey, final String gameVersion) {
 		if (gameVersion != null && gameVersion.length() > 0) {
 			TAGID = gameVersion;
 		}
@@ -88,23 +76,32 @@ public class TbuCloud {
 
 		AVOSCloud.useAVCloudCN(); 
 		AVOSCloud.initialize(context, appId, appKey);
-
-		PushService.setDefaultPushCallback(context, cls);
-		PushService.subscribe(context, "public", cls);
-		AVInstallation.getCurrentInstallation().saveInBackground();
-		
 		AVAnalytics.enableCrashReport(context, true);
-
-		sendReq();
 
 		channelId = getChannelId(context);
 		
 		successInit = true;
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
-				Context.MODE_PRIVATE);
+		
 		if (callback != null) {
 			callback.result(successInit);
 		}
+	}
+	
+	public static void initPush(final Context context, final Class<? extends Activity> cls) {
+		AVInstallation.getCurrentInstallation().saveInBackground(new SaveCallback() {
+		    public void done(AVException e) {
+		        if (e == null) {
+		            // 保存成功
+		            //String installationId = AVInstallation.getCurrentInstallation().getInstallationId();
+		            // 关联  installationId 到用户表等操作……
+		        } else {
+		            // 保存失败，输出错误信息
+		        	Log.i(Debug.TAG_DEBUG, "AVInstallation.getCurrentInstallation().saveInBackground fail,e=" + e.toString());
+		        }
+		    }
+		});
+		PushService.setDefaultPushCallback(context, cls);
+		PushService.subscribe(context, "public", cls);
 	}
 
 	/**
@@ -153,6 +150,9 @@ public class TbuCloud {
 	public static void updatePlayerInfo(final String objectId,
 			final String level, final int money, final int payMoney,
 			final int score) {
+		if(!TbuCloud.openDataRecord) {
+			return ;
+		}
 		new AsyncTask<String, Integer, String>() {
 
 			@Override
@@ -193,12 +193,15 @@ public class TbuCloud {
 	public static void updatePlayerScore(final Context context,
 			final String objectId, final int score,
 			final UpdateCallback callback) {
+		if(!TbuCloud.openDataRecord) {
+			return ;
+		}
 		new AsyncTask<String, Integer, String>() {
 
 			@Override
 			protected String doInBackground(String... params) {
 
-				gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+				SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 						Context.MODE_PRIVATE);
 				Editor editor = gameInfo.edit();
 				editor.putInt("topScore", score);
@@ -254,12 +257,15 @@ public class TbuCloud {
 	public static void updatePlayerNickName(final Context context,
 			final String objectId, final String nickName,
 			final UpdateCallback callback) {
+		if(!TbuCloud.openDataRecord) {
+			return ;
+		}
 		new AsyncTask<String, Integer, String>() {
 
 			@Override
 			protected String doInBackground(String... params) {
 
-				gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+				final SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 						Context.MODE_PRIVATE);
 				if (objectId == null || !isSuccessInit()) {
 					callback.result(false, "网络未连接");
@@ -303,6 +309,9 @@ public class TbuCloud {
 	 */
 	public static void isNickNameUnique(final String nickName,
 			final UpdateCallback callback) {
+		if(!TbuCloud.openDataRecord) {
+			return ;
+		}
 		new AsyncTask<String, Integer, String>() {
 
 			@Override
@@ -346,6 +355,10 @@ public class TbuCloud {
 			final String gameVersionCode, final String level, final int money,
 			final String enterId, final int payMoney, final int score,
 			final CreatePlayerCallback callback) {
+			if(!TbuCloud.openDataRecord) {
+				callback.result(false, null);
+				return ;
+			}
 			if (TbuCloud.isSuccessInit()) {
 				if (callback != null) {
 					callback.result(false, null);
@@ -410,6 +423,10 @@ public class TbuCloud {
 			final String levelId, final String imsi, final String carrier,
 			final String payPluginName, final String userType,
 			final TbuCallback callback) {
+		if(!TbuCloud.openDataRecord) {
+			callback.result(false);
+			return ;
+		}
 		if (TbuCloud.isSuccessInit()) {
 			callback.result(false);
 		}
@@ -536,6 +553,10 @@ public class TbuCloud {
 			final String version, final int currentLevel,
 			final String currentPropName, final int propCounts,
 			final TbuCallback callback) {
+		if(!TbuCloud.openDataRecord) {
+			callback.result(false);
+			return ;
+		}
 		if (!TbuCloud.isSuccessInit()) {
 			if (callback != null) {
 				callback.result(false);
@@ -630,6 +651,9 @@ public class TbuCloud {
 	public static void updateGamePropConsume(final String className,
 			final String version, final String currentPropName,
 			final int propCounts, final int propMoney) {
+		if(!TbuCloud.openDataRecord) {
+			return ;
+		}
 		final AVObject gamePropInfo = new AVObject(className);
 		AVQuery<AVObject> query = new AVQuery<AVObject>(className);
 		query.whereEqualTo("version", version);
@@ -693,12 +717,16 @@ public class TbuCloud {
 	 *            渠道号
 	 * @param callback
 	 */
-	public static void getRecommendList(final String enterId,
+	public static void getRecommendList(
+			final Context context, 
+			final String enterId,
 			final RecommendCallback callback) {
 		if (!isSuccessInit()) {
 			callback.result(false, null);
 			return;
 		}
+		final SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+				Context.MODE_PRIVATE);
 		final Editor editor = gameInfo.edit();
 		Long lastcache = gameInfo.getLong("lastcache", 0);
 		final Map<Integer, String[]> paramList1 = new HashMap<Integer, String[]>();
@@ -819,8 +847,7 @@ public class TbuCloud {
 
 			@Override
 			protected String doInBackground(String... params) {
-
-				gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+				final SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 						Context.MODE_PRIVATE);
 				Editor editor = gameInfo.edit();
 
@@ -1004,7 +1031,7 @@ public class TbuCloud {
 		}.execute("");
 	}
 
-	private static SharedPreferences gameInfo;
+	//private static SharedPreferences gameInfo;
 
 	/**
 	 * 标记用户付费情况
@@ -1014,7 +1041,7 @@ public class TbuCloud {
 	 *            0-未付费 1-已付费
 	 */
 	public static void markUserPay(Context context, int type) {
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+		SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		Editor editor = gameInfo.edit();
 		editor.putInt(TbuCloud.POXIAO_CLOUD_PAY, type);
@@ -1029,7 +1056,7 @@ public class TbuCloud {
 	 *            当前时间的毫秒数
 	 */
 	public static void markUserLogin(Context context, long millionSeconds) {
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+		SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		Editor editor = gameInfo.edit();
 		editor.putLong(TbuCloud.POXIAO_CLOUD_LOGIN, millionSeconds);
@@ -1044,7 +1071,7 @@ public class TbuCloud {
 	 * @return
 	 */
 	public static long getUserLastLogin(Context context) {
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+		SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		return gameInfo.getLong(TbuCloud.POXIAO_CLOUD_LOGIN, 0);
 	}
@@ -1057,72 +1084,9 @@ public class TbuCloud {
 	 * @return
 	 */
 	public static int getUserPay(Context context) {
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+		SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		return gameInfo.getInt(TbuCloud.POXIAO_CLOUD_PAY, 0);
-	}
-
-	/**
-	 * 获取用户所在地理位置
-	 */
-	public static String getUserProvince() {
-		return province;
-	}
-
-	private static final String urlAddress = "http://115.236.18.198:8088/charge/getProv.htm";
-
-	// private static final String urlAddress =
-	// "http://poxiao888.vicp.cc:8089/charge/getProv.htm";
-
-	private static void sendReq() {
-		new AsyncTask<String, Integer, String>() {
-
-			@Override
-			protected String doInBackground(String... params) {
-				try {
-					URL url = new URL(params[0]);
-					HttpURLConnection urlConnection = (HttpURLConnection) url
-							.openConnection();
-
-					urlConnection.setRequestMethod("POST");
-					urlConnection.setDoInput(true);
-					urlConnection.setDoOutput(true);
-					urlConnection.setUseCaches(false);
-					urlConnection.setConnectTimeout(10 * 1000);
-					urlConnection.setReadTimeout(10 * 1000);
-					urlConnection.connect();
-
-					InputStream inputStream = urlConnection.getInputStream();
-					byte[] byteBuffer = input2byte(inputStream);
-
-					inputStream.close();
-					urlConnection.disconnect();
-
-					return new String(byteBuffer);
-				} catch (Exception e) {
-					e.printStackTrace();
-					return "unknow";
-				}
-			}
-
-			@Override
-			protected void onPostExecute(String result) {
-				Log.i("POXIAOCLOUD", "用户所在省份：" + result);
-				province = result;
-			}
-		}.execute(urlAddress);
-	}
-
-	private static final byte[] input2byte(InputStream inStream)
-			throws IOException {
-		ByteArrayOutputStream swapStream = new ByteArrayOutputStream();
-		byte[] buff = new byte[100];
-		int rc = 0;
-		while ((rc = inStream.read(buff, 0, 100)) > 0) {
-			swapStream.write(buff, 0, rc);
-		}
-		byte[] in2b = swapStream.toByteArray();
-		return in2b;
 	}
 
 	/**
@@ -1133,7 +1097,7 @@ public class TbuCloud {
 	 *            当前时间的毫秒数
 	 */
 	public static void markUserReceiverPush(Context context, long millionSeconds) {
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+		SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		Editor editor = gameInfo.edit();
 		editor.putLong(TbuCloud.POXIAO_CLOUD_PUSH, millionSeconds);
@@ -1148,7 +1112,7 @@ public class TbuCloud {
 	 * @return
 	 */
 	public static long getUserLastReceiverPush(Context context) {
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+		SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		return gameInfo.getLong(TbuCloud.POXIAO_CLOUD_PUSH, 0);
 	}
@@ -1160,7 +1124,7 @@ public class TbuCloud {
 	 * @return true -新用户 false-老用户
 	 */
 	public static int markUserType(Context context) {
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+		SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		if (gameInfo.getInt("firstLogin", 0) == 0) {
 			Editor editor = gameInfo.edit();
@@ -1269,7 +1233,7 @@ public class TbuCloud {
 	}
 
 	public static void saveNotifyId(Context context, int id) {
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+		SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		Editor editor = gameInfo.edit();
 		editor.putInt("notify_id", id);
@@ -1277,7 +1241,7 @@ public class TbuCloud {
 	}
 
 	public static int getNotifyId(Context context) {
-		gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
+		SharedPreferences gameInfo = context.getSharedPreferences(TbuCloud.POXIAO_CLOUD,
 				Context.MODE_PRIVATE);
 		return gameInfo.getInt("notify_id", 0);
 	}
